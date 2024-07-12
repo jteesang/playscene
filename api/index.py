@@ -2,7 +2,7 @@ import replicate, spotipy, instructor
 import base64, os, requests, urllib
 import pprint, json
 
-from fastapi import FastAPI, Request, File, UploadFile, Form
+from fastapi import FastAPI, Request
 from fastapi.responses import RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 from urllib.request import urlopen 
@@ -14,13 +14,6 @@ from pydantic import BaseModel
 from typing import List
 
 load_dotenv()
-
-# class Track:
-#     def __init__(self, title, artist):
-#         self.title = title,
-#         self.artist = artist,
-#         self.track_id = '',
-#         self.artist_id = ''
 
 class Track(BaseModel):
     track: str
@@ -97,11 +90,9 @@ def callback(req: Request):
 
 # test replicate locally
 @app.get("/replicate")
-def get_image(input: dict):
-    #img = open("././public/turtle.jpg", "rb")
-
+def get_image(path: str):
     input = {
-        "image": input["image"],
+        "image": path,
         "clip_model_name": "ViT-L-14/openai"
     }
 
@@ -110,22 +101,24 @@ def get_image(input: dict):
     #return(output)
 
 @app.post("/upload")
-def upload(imagePath: str = Form(...), accessToken: str = Form(...)):
-    #print("imagePath: ", imagePath)
-    # convert to File obj
-    img = open(imagePath, "rb")
-    input = { "image": img }
-    
+async def upload(request: Request):
+    req = await request.json()
+    imagePath = req["path"]["publicUrl"]
+
     # call Replicate
-    output = get_image(input)
+    input = {
+        "image": imagePath,
+        "clip_model_name": "ViT-L-14/openai"
+    } 
+    output = replicate.run("pharmapsychotic/clip-interrogator:8151e1c9f47e696fa316146a2e35812ccf79cfc9eba05b11c7f450155102af70", input )
     # print(output)
 
     # call Open AI for sample tracks
     #output = "a watercolor painting of a sea turtle, a digital painting, by Kubisi art, featured on dribbble, medibang, warm saturated palette, red and green tones, turquoise horizon, digital art h 9 6 0, detailed scenery —width 672, illustration:.4, spray art, artstatiom"
-    #sample_tracks = get_sample_tracks(output)
+    sample_tracks = get_sample_tracks(output)
 
     # call Spotify API for recs
-    #return (generate_playlist(sample_tracks))
+    return (generate_playlist(sample_tracks))
 
 def get_sample_tracks(img_desc):
     # get 5 sample tracks from open ai
@@ -147,9 +140,6 @@ def get_sample_tracks(img_desc):
 
 
 def generate_playlist(sample_tracks):
-    # get spotify access token
-    #print('generate_playlist')
-    #print('accessToken', access_token)
 
     # # test with multiple tracks
     # sample_tracks = []
