@@ -27,6 +27,10 @@ export default function Home() {
 
   })
 
+  const changeText = (text) => {
+    setLoading(text)
+  }
+
   const handleSubmit = async () => {
 
     let path = "././public/turtle.jpg";

@@ -1,19 +1,21 @@
 import replicate, spotipy, instructor
 import base64, os, requests, urllib
-import pprint, json
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Response
 from fastapi.responses import RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
-from urllib.request import urlopen 
 from dotenv import load_dotenv
 from spotipy.oauth2 import SpotifyOAuth
-from pprint import pprint
 from openai import OpenAI
 from pydantic import BaseModel
 from typing import List
+from supabase import create_client, Client
 
 load_dotenv()
+
+url: str = os.environ.get('NEXT_PUBLIC_SUPABASE_URL')
+key: str = os.environ.get('NEXT_PUBLIC_SUPABASE_ANON_KEY')
+supabase: Client = create_client(url, key)
 
 class Track(BaseModel):
     track: str
@@ -24,17 +26,13 @@ class Track(BaseModel):
 Tracks = List[Track]
 sample_tracks: Tracks = []
 
-access_token = ''
-
 # open ai client
 client = instructor.from_openai(OpenAI())
 
-# spotify client
-sp = spotipy.Spotify(auth_manager=SpotifyOAuth(
-    client_id=os.getenv("CLIENT_ID"),
-    client_secret=os.getenv("CLIENT_SECRET"),
-    redirect_uri="http://localhost:8888/callback",
-    scope="streaming playlist-modify-private playlist-modify-public user-top-read user-library-modify user-read-email user-read-private"))
+# spotify auth
+sp = ""
+auth_manager = ""
+access_token = ''
 
 app = FastAPI(docs_url="/api/docs", openapi_url="/api/openapi.json")
 
@@ -52,15 +50,17 @@ def root():
 
 @app.get("/login")
 def login():
-    auth_options = {
-        "client_id": os.getenv("CLIENT_ID"),
-        "response_type": "code",
-        "redirect_uri": "http://127.0.0.1:8000/callback", #TODO CHANGE THIS
-        "scope": "streaming playlist-modify-private playlist-modify-public user-top-read user-library-modify user-read-email user-read-private",
-        "show_dialog": "true"
-    }
-    auth_url = "https://accounts.spotify.com/authorize?" + urllib.parse.urlencode(auth_options)
-    return RedirectResponse(auth_url)
+    global auth_manager, sp
+    # spotify auth manager
+    auth_manager = SpotifyOAuth(
+        client_id=os.getenv("CLIENT_ID"),
+        client_secret=os.getenv("CLIENT_SECRET"),
+        redirect_uri="http://127.0.0.1:8000/callback",
+        scope="streaming playlist-modify-public user-top-read user-library-modify user-read-email user-read-private",
+        show_dialog=True)
+    print(f'auth_manager.get_access_token - {auth_manager.get_access_token()}')
+    sp = spotipy.Spotify(auth_manager = auth_manager)
+    return RedirectResponse(auth_manager.get_authorize_url())
 
 @app.get("/callback")
 def callback(req: Request):
@@ -86,38 +86,44 @@ def callback(req: Request):
     if "access_token" in response_json:
         access_token = response_json["access_token"]
         redirect_url = "http://localhost:3000/?access_token=" + access_token
+        print(f'callback access token: {access_token}')
         return RedirectResponse(redirect_url)
 
-# test replicate locally
+# test replicate - local use only
 @app.get("/replicate")
-def get_image(path: str):
+def get_image():
+    path = 'https://fiabfmfxtsqxyresiqcw.supabase.co/storage/v1/object/public/playscene/uploads/arts-club-night-dinner.jpeg'
     input = {
         "image": path,
         "clip_model_name": "ViT-L-14/openai"
     }
 
-    #output = replicate.run("pharmapsychotic/clip-interrogator:8151e1c9f47e696fa316146a2e35812ccf79cfc9eba05b11c7f450155102af70", input )
-    #print(output)
-    #return(output)
-
 @app.post("/upload")
 async def upload(request: Request):
+    # spotify client
+    sp = spotipy.Spotify(auth_manager=auth_manager)
+
     req = await request.json()
-    imagePath = req["path"]["publicUrl"]
+    print(f'request: {req}')
+    imagePath = req["path"]
+    print(f'imagePath: {imagePath}')
+    res = supabase.storage.from_('playscene').get_public_url(f'uploads/{imagePath}')
+    print(f'res: {res}')
 
     # call Replicate
     input = {
-        "image": imagePath,
+        "image": res,
         "clip_model_name": "ViT-L-14/openai"
     } 
+    print('Running the replicate model...')
     output = replicate.run("pharmapsychotic/clip-interrogator:8151e1c9f47e696fa316146a2e35812ccf79cfc9eba05b11c7f450155102af70", input )
-    # print(output)
 
     # call Open AI for sample tracks
-    #output = "a watercolor painting of a sea turtle, a digital painting, by Kubisi art, featured on dribbble, medibang, warm saturated palette, red and green tones, turquoise horizon, digital art h 9 6 0, detailed scenery —width 672, illustration:.4, spray art, artstatiom"
+    print('Running the gpt model...')
     sample_tracks = get_sample_tracks(output)
 
     # call Spotify API for recs
+    print('Running the spotify recs...')
     return (generate_playlist(sample_tracks))
 
 def get_sample_tracks(img_desc):
@@ -133,37 +139,24 @@ def get_sample_tracks(img_desc):
     
     for resp in response:
         sample_tracks.append(resp)
-        #print(resp)
 
     return sample_tracks
 
-
-
 def generate_playlist(sample_tracks):
-
-    # # test with multiple tracks
-    # sample_tracks = []
-    # sample_tracks.append(Track("Ocean Eyes", "Billie Eilish")) 
-    # sample_tracks.append(Track("Yellow", "Coldplay"))
-    # sample_tracks.append(Track("Electric Feel", "MGMT"))
-    # sample_tracks.append(Track("Wave", "Beck"))
-    # sample_tracks.append(Track("Under the Bridge", "Red Hot Chili Peppers"))
-
+# def generate_playlist():
     # get spotify ids of each track using search endpoint
     for track in sample_tracks:
         query_str = urllib.parse.quote(f'track:{track.track} artist:{track.artist}', safe='')
         response = sp.search(f'q:{query_str}', type='track')
-        track.track_id = response['tracks']['items'][0]['id']
-        track.artist_id = response['tracks']['items'][0]['artists'][0]['id']
-        #print(f'track: {track.title}, artist: {track.artist}, track_id: {track.track_id}, artist_id: {track.artist_id}')
+        if not response['tracks']['items']:
+            continue
+        else:
+            track.track_id = response['tracks']['items'][0]['id']
         
     # call spotify api recommendations endpoint - only takes 5 seeds
-    track_ids = [track.track_id for track in sample_tracks]
-    artist_ids = [track.artist_id for track in sample_tracks]
-
+    track_ids = [track.track_id for track in sample_tracks][:5]
     rec_response = sp.recommendations(seed_tracks=track_ids)
     rec_tracks =  [track['id'] for track in rec_response['tracks']]
-    print('recommended tracks: ', rec_tracks)
 
     # get user id
     user_response = sp.me()
@@ -175,19 +168,5 @@ def generate_playlist(sample_tracks):
 
     # add to playlist
     add_tracks = sp.playlist_add_items(playlist_id, rec_tracks)
-    print('snapshot_id', add_tracks)
+
     return playlist_id
-
-
-
-    
-
-
-
-
-
-
-
-
-
-    
