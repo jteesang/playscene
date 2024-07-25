@@ -10,11 +10,14 @@ module.exports = {
       'default-green': '#1db954',
       'green': '#1ED760',
       'black': '#191414',
+      'light-black': '#191919',
       'white': '#FFFFFF',
       'violet': '#8B5CF6',
       'fuchsia': '#D946EF',
       'red': '#f44336',
-      'gray': '#444444'
+      'gray': '#444444',
+      'light-gray': '#3D3D3D',
+      'lighter-gray': '#464646'
     },
     extend: {
       backgroundImage: {
