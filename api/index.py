@@ -31,7 +31,14 @@ client = instructor.from_openai(OpenAI())
 
 # spotify auth
 sp = ''
-auth_manager = ''
+# spotify auth manager
+auth_manager = SpotifyOAuth(
+    client_id=os.getenv("CLIENT_ID"),
+    client_secret=os.getenv("CLIENT_SECRET"),
+    redirect_uri="https://playscene-app.vercel.app/callback",
+    #redirect_uri="http://127.0.0.1:8000/callback", # local
+    scope="streaming playlist-modify-public user-top-read user-library-modify user-read-email user-read-private",
+    show_dialog=True)
 access_token = ''
 
 app = FastAPI(docs_url="/api/docs", openapi_url="/api/openapi.json")
@@ -50,17 +57,8 @@ def root():
 
 @app.get("/login")
 def login():
-    global auth_manager, sp
-    # spotify auth manager
-    auth_manager = SpotifyOAuth(
-        client_id=os.getenv("CLIENT_ID"),
-        client_secret=os.getenv("CLIENT_SECRET"),
-        redirect_uri="https://playscene-app.vercel.app/callback",
-        #redirect_uri="http://127.0.0.1:8000/callback", # local
-        scope="streaming playlist-modify-public user-top-read user-library-modify user-read-email user-read-private",
-        show_dialog=True)
-    print(f'auth_manager.get_access_token - {auth_manager.get_access_token()}')
-    sp = spotipy.Spotify(auth_manager = auth_manager)
+    global sp
+    sp = spotipy.Spotify(auth_manager= auth_manager)
     return RedirectResponse(auth_manager.get_authorize_url())
 
 @app.get("/callback")
