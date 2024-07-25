@@ -55,7 +55,8 @@ def login():
     auth_manager = SpotifyOAuth(
         client_id=os.getenv("CLIENT_ID"),
         client_secret=os.getenv("CLIENT_SECRET"),
-        redirect_uri="http://127.0.0.1:8000/callback",
+        redirect_uri="https://playscene-app.vercel.app/callback"
+        #redirect_uri="http://127.0.0.1:8000/callback", # local
         scope="streaming playlist-modify-public user-top-read user-library-modify user-read-email user-read-private",
         show_dialog=True)
     print(f'auth_manager.get_access_token - {auth_manager.get_access_token()}')
@@ -72,7 +73,8 @@ def callback(req: Request):
 
     form = {
         "code": req.query_params.get('code'),
-        "redirect_uri": "http://127.0.0.1:8000/callback",
+        "redirect_uri":"https://playscene-app.vercel.app/callback",
+        #"redirect_uri": "http://127.0.0.1:8000/callback", # local
         "grant_type": "authorization_code" 
     }
     headers = {
