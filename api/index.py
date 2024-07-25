@@ -1,7 +1,7 @@
 import replicate, spotipy, instructor
 import base64, os, requests, urllib
 
-from fastapi import FastAPI, Request, Response
+from fastapi import FastAPI, Request
 from fastapi.responses import RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
@@ -30,8 +30,8 @@ sample_tracks: Tracks = []
 client = instructor.from_openai(OpenAI())
 
 # spotify auth
-sp = ""
-auth_manager = ""
+sp = ''
+auth_manager = ''
 access_token = ''
 
 app = FastAPI(docs_url="/api/docs", openapi_url="/api/openapi.json")
@@ -100,15 +100,9 @@ def get_image():
 
 @app.post("/upload")
 async def upload(request: Request):
-    # spotify client
-    sp = spotipy.Spotify(auth_manager=auth_manager)
-
     req = await request.json()
-    print(f'request: {req}')
     imagePath = req["path"]
-    print(f'imagePath: {imagePath}')
     res = supabase.storage.from_('playscene').get_public_url(f'uploads/{imagePath}')
-    print(f'res: {res}')
 
     # call Replicate
     input = {
@@ -134,7 +128,7 @@ def get_sample_tracks(img_desc):
         messages=[
             {"role": "system", "content": "You are a helpful assistant and music junkie."},
             {"role": "assistant", "content": img_desc},
-            {"role": "user", "content": "Based on the description of an image provided, recommend 5 different tracks that fit the vibe. Only return the artist and track for each recommendation."}
+            {"role": "user", "content": "Based on the description of an image provided, recommend only 5 different songs that fit the vibe. Only return the artist and track for each recommendation."}
     ])
     
     for resp in response:
@@ -143,7 +137,6 @@ def get_sample_tracks(img_desc):
     return sample_tracks
 
 def generate_playlist(sample_tracks):
-# def generate_playlist():
     # get spotify ids of each track using search endpoint
     for track in sample_tracks:
         query_str = urllib.parse.quote(f'track:{track.track} artist:{track.artist}', safe='')
@@ -153,7 +146,7 @@ def generate_playlist(sample_tracks):
         else:
             track.track_id = response['tracks']['items'][0]['id']
         
-    # call spotify api recommendations endpoint - only takes 5 seeds
+    # call spotify api recommendations endpoint - takes up to 5 seeds
     track_ids = [track.track_id for track in sample_tracks][:5]
     rec_response = sp.recommendations(seed_tracks=track_ids)
     rec_tracks =  [track['id'] for track in rec_response['tracks']]
@@ -163,10 +156,13 @@ def generate_playlist(sample_tracks):
     user_id = user_response['id']
 
     # create playlist
-    create_playlist = sp.user_playlist_create(user_id, 'sample playlist')
+    create_playlist = sp.user_playlist_create(user_id, f'{user_id}\'s playlist')
     playlist_id = create_playlist['id']
 
     # add to playlist
     add_tracks = sp.playlist_add_items(playlist_id, rec_tracks)
 
-    return playlist_id
+    # get playlist image
+    cover_image = sp.playlist_cover_image(playlist_id)[1]['url']
+
+    return {'playlist': playlist_id, 'cover_image': cover_image, 'user': user_id}
