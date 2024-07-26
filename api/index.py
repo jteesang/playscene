@@ -101,8 +101,10 @@ def get_image():
 @app.post("/upload")
 async def upload(request: Request):
     req = await request.json()
+    print(f'req: {req}')
     imagePath = req["path"]
     res = supabase.storage.from_('playscene').get_public_url(f'uploads/{imagePath}')
+    print(f'res: {res}')
 
     # call Replicate
     input = {
