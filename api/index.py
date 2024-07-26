@@ -29,8 +29,6 @@ sample_tracks: Tracks = []
 # open ai client
 client = instructor.from_openai(OpenAI())
 
-# spotify auth
-sp = ''
 # spotify auth manager
 auth_manager = SpotifyOAuth(
     client_id=os.getenv("CLIENT_ID"),
@@ -39,6 +37,8 @@ auth_manager = SpotifyOAuth(
     #redirect_uri="http://127.0.0.1:8000/callback", # local
     scope="streaming playlist-modify-public user-top-read user-library-modify user-read-email user-read-private",
     show_dialog=True)
+
+sp = spotipy.Spotify(auth_manager=auth_manager)
 access_token = ''
 
 app = FastAPI(docs_url="/api/docs", openapi_url="/api/openapi.json")
@@ -57,8 +57,6 @@ def root():
 
 @app.get("/login")
 def login():
-    global sp
-    sp = spotipy.Spotify(auth_manager= auth_manager)
     return RedirectResponse(auth_manager.get_authorize_url())
 
 @app.get("/callback")
