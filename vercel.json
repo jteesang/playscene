@@ -12,11 +12,9 @@
       "dest": "api/index.py"
     }
   ],
-  "functions": [
-    {
-      "api/index.py": {
-        "maxDuration": 60
-      }
+  "functions": {
+    "api/index.py": {
+      "maxDuration": 60
     }
-  ]
+  }  
 }
