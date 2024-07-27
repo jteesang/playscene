@@ -104,7 +104,7 @@ async def get_image(path: str):
     # poll for status
     while prediction.status not in {"succeeded", "failed", "canceled"}:
         prediction.reload()
-        time.sleep(5)
+        time.sleep(2)
         print(f"status : {prediction.status}")
 
     return prediction.output
