@@ -63,7 +63,10 @@ export default function Home() {
           method: 'POST',
           body: JSON.stringify({
             "path": fileName
-          })
+          }),
+          headers: { 
+            'Content-Type': 'application/json'
+          }
         })
         .then((response) => response.json())
         .then(({playlist, cover_image, user}) => {
