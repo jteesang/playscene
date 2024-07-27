@@ -37,6 +37,16 @@ export default function Home() {
     }
   })
 
+  const getReplicate = async () => {
+    let url = 'https://fastapi-vercel-silk-gamma.vercel.app/replicate'
+    await fetch(url, {
+      mode: 'cors',
+      method: 'GET'
+
+    })
+    .then((response) => response.json())
+  }
+
   const handleSubmit = async () => {
     if (fileObj == '') {
       alert('Please upload a photo!')
@@ -46,7 +56,9 @@ export default function Home() {
       setOpen(true)
 
       if (accessToken !== '') {
-        fetch('http://127.0.0.1:8000/upload', {
+        let url = 'https://fastapi-vercel-silk-gamma.vercel.app/upload'
+        //let url = 'http://127.0.0.1:8000/upload'
+        await fetch(url, {
           mode: 'cors',
           method: 'POST',
           body: JSON.stringify({
@@ -84,6 +96,8 @@ export default function Home() {
       cacheControl: '3600',
       upsert: true
     })
+    console.log('data: ', data)
+    console.log('error: ', error)
     let url = 'https://fiabfmfxtsqxyresiqcw.supabase.co/storage/v1/object/public/playscene/uploads/' + fileName
 
     urlToBase64(url).then(dataUrl => {
@@ -106,7 +120,7 @@ export default function Home() {
       <div className="grid gap-4">
         <h1 className="grid justify-center font-sans font-bold text-3xl">Playscene</h1>
         <h3 className="font-sans">Find your next Spotify playlist for your scene.</h3>
-        <a href="http://127.0.0.1:8000/login" 
+        <a href="https://fastapi-vercel-silk-gamma.vercel.app/login" 
           className="grid mx-4 py-4 place-content-center button border-[2px] border-default-green shadow-md rounded-full bg-default-green text-black font-medium hover:bg-green drop-shadow-md">
           Connect to Spotify</a>          
       </div>
@@ -169,7 +183,7 @@ export default function Home() {
         </Dialog>
           :
           <button onClick={handleSubmit} className="justify-center py-4 px-20 rounded-full bg-violet hover:bg-fuchsia font-medium">
-            'Generate Playlist'
+            Generate Playlist
           </button>
       }
     </div>
