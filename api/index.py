@@ -1,5 +1,5 @@
 import replicate, spotipy, instructor
-import base64, os, requests, urllib
+import base64, os, requests, urllib, time
 
 from fastapi import FastAPI, Request
 from fastapi.responses import RedirectResponse
@@ -96,9 +96,18 @@ async def get_image(path: str):
     input = {
         "image": path,
         "clip_model_name": "ViT-L-14/openai"
-    }    
-    output = replicate.run("pharmapsychotic/clip-interrogator:8151e1c9f47e696fa316146a2e35812ccf79cfc9eba05b11c7f450155102af70", input )
-    return output
+    }   
+    prediction = replicate.predictions.create(
+        version="8151e1c9f47e696fa316146a2e35812ccf79cfc9eba05b11c7f450155102af70",
+        input= input,
+    )
+    # poll for status
+    while prediction.status not in {"succeeded", "failed", "canceled"}:
+        prediction.reload()
+        time.sleep(5)
+        print(f"status : {prediction.status}")
+
+    return prediction.output
 
 @app.post("/upload")
 async def upload(request: Request):
