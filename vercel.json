@@ -1,13 +1,12 @@
 {
-  "version": 2,
-  "routes": [
+  "rewrites": [
     {
-      "src": "/(.*)",
-      "dest": "api/index.py"
+        "source": "/(.*)",
+        "destination": "/api/index"
     }
   ],
   "functions": {
-    "api/index.py": {
+    "/api/index.py": {
       "maxDuration": 60
     }
   }  
