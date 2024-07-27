@@ -91,14 +91,14 @@ def callback(req: Request):
         print(f'callback access token: {access_token}')
         return RedirectResponse(redirect_url)
 
-# test replicate - local use only
-@app.get("/replicate")
-def get_image():
-    path = 'https://fiabfmfxtsqxyresiqcw.supabase.co/storage/v1/object/public/playscene/uploads/arts-club-night-dinner.jpeg'
+# @app.get("/replicate") # local testing
+async def get_image(path: str):
     input = {
         "image": path,
         "clip_model_name": "ViT-L-14/openai"
-    }
+    }    
+    output = replicate.run("pharmapsychotic/clip-interrogator:8151e1c9f47e696fa316146a2e35812ccf79cfc9eba05b11c7f450155102af70", input )
+    return output
 
 @app.post("/upload")
 async def upload(request: Request):
@@ -108,13 +108,9 @@ async def upload(request: Request):
     res = supabase.storage.from_('playscene').get_public_url(f'uploads/{imagePath}')
     print(f'res: {res}')
 
-    # call Replicate
-    input = {
-        "image": res,
-        "clip_model_name": "ViT-L-14/openai"
-    } 
+    # call Replicate 
     print('Running the replicate model...')
-    output = replicate.run("pharmapsychotic/clip-interrogator:8151e1c9f47e696fa316146a2e35812ccf79cfc9eba05b11c7f450155102af70", input )
+    output = await get_image(res)
 
     # call Open AI for sample tracks
     print('Running the gpt model...')
