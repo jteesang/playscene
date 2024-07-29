@@ -58,18 +58,17 @@ export default function Home() {
       if (accessToken !== '') {
         let url = 'https://fastapi-vercel-silk-gamma.vercel.app/upload'
         //let url = 'http://127.0.0.1:8000/upload'
+        const formData = new FormData();
+        formData.append('imagePath', fileName)
+        formData.append('accessToken', accessToken)
         await fetch(url, {
           mode: 'cors',
           method: 'POST',
-          body: JSON.stringify({
-            "path": fileName
-          }),
-          headers: { 
-            'Content-Type': 'application/json'
-          }
+          body: formData,
         })
         .then((response) => response.json())
         .then(({playlist, cover_image, user}) => {
+          console.log(`playlist: ${playlist}, cover_image: ${cover_image}, user: ${user}`)
           setPlaylist(`https://open.spotify.com/playlist/${playlist}`),
           setCoverImageUrl(cover_image),
           setUserId(user)
