@@ -22,6 +22,7 @@ export default function Home() {
 
 
   useEffect( () => {
+    console.log(`url: ${process.env.NEXT_PUBLIC_API_SERVICE}`)
     console.log('in effect, playlist: ', playlist)
     console.log('in effect, playlist image: ', coverImgUrl)
     // setCoverImageUrl('https://mosaic.scdn.co/300/ab67616d0000b2730835d1fdd076d957c324ccd6ab67616d0000b2731b5192c9ab7c8af90a9475f6ab67616d0000b2733f3680542f3f921cc31b4364ab67616d0000b273db7b8eb8f4d48fc9445bc937')
@@ -37,16 +38,6 @@ export default function Home() {
     }
   })
 
-  const getReplicate = async () => {
-    let url = 'https://fastapi-vercel-silk-gamma.vercel.app/replicate'
-    await fetch(url, {
-      mode: 'cors',
-      method: 'GET'
-
-    })
-    .then((response) => response.json())
-  }
-
   const handleSubmit = async () => {
     if (fileObj == '') {
       alert('Please upload a photo!')
@@ -56,8 +47,8 @@ export default function Home() {
       setOpen(true)
 
       if (accessToken !== '') {
-        let url = 'https://fastapi-vercel-silk-gamma.vercel.app/upload'
-        //let url = 'http://127.0.0.1:8000/upload'
+        const url = `${process.env.NEXT_PUBLIC_API_SERVICE}/upload`
+        console.log(`url for upload: ${url}`)
         const formData = new FormData();
         formData.append('imagePath', fileName)
         formData.append('accessToken', accessToken)
@@ -74,6 +65,10 @@ export default function Home() {
           setUserId(user)
         })
         .then(() => setLoading(false))
+        .catch((e) => {
+          console.error(e)
+          alert('Sorry, something went wrong! Try again.')
+        })
       } 
       else {
         alert('Please authenticate with Spotify!')
@@ -97,7 +92,7 @@ export default function Home() {
     })
     console.log('data: ', data)
     console.log('error: ', error)
-    let url = 'https://fiabfmfxtsqxyresiqcw.supabase.co/storage/v1/object/public/playscene/uploads/' + fileName
+    let url = process.env.NEXT_PUBLIC_DATABASE_URL + fileName
 
     urlToBase64(url).then(dataUrl => {
       setBase64Output(dataUrl)
@@ -119,7 +114,7 @@ export default function Home() {
       <div className="grid gap-4">
         <h1 className="grid justify-center font-sans font-bold text-3xl">Playscene</h1>
         <h3 className="font-sans">Find your next Spotify playlist for your scene.</h3>
-        <a href="https://fastapi-vercel-silk-gamma.vercel.app/login" 
+        <a href={`${process.env.NEXT_PUBLIC_API_SERVICE}/login`}
           className="grid mx-4 py-4 place-content-center button border-[2px] border-default-green shadow-md rounded-full bg-default-green text-black font-medium hover:bg-green drop-shadow-md">
           Connect to Spotify</a>          
       </div>
