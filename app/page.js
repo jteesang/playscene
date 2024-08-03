@@ -23,8 +23,7 @@ export default function Home() {
 
   useEffect( () => {
     console.log(`url: ${process.env.NEXT_PUBLIC_API_SERVICE}`)
-    console.log('in effect, playlist: ', playlist)
-    console.log('in effect, playlist image: ', coverImgUrl)
+    console.log('in effect, open: ', open)
     // setCoverImageUrl('https://mosaic.scdn.co/300/ab67616d0000b2730835d1fdd076d957c324ccd6ab67616d0000b2731b5192c9ab7c8af90a9475f6ab67616d0000b2733f3680542f3f921cc31b4364ab67616d0000b273db7b8eb8f4d48fc9445bc937')
     // console.log('in effect, uploaded image: ', base64Output)
     let accessToken = new URL(window.location.href).search.split('access_token=')[1]
@@ -48,7 +47,6 @@ export default function Home() {
 
       if (accessToken !== '') {
         const url = `${process.env.NEXT_PUBLIC_API_SERVICE}/upload`
-        console.log(`url for upload: ${url}`)
         const formData = new FormData();
         formData.append('imagePath', fileName)
         formData.append('accessToken', accessToken)
@@ -75,6 +73,17 @@ export default function Home() {
       }
     }
 
+  }
+
+  const refreshComponents = () => {
+    setLoading(false)
+    setOpen(false)
+    setFileObj('')
+    setFileName('')
+    setBase64Output('')
+    setPlaylist('')
+    setCoverImageUrl('')
+    inputFile.current.value = null
   }
   
   const handleFile = async (e) => {
@@ -113,14 +122,14 @@ export default function Home() {
     <main className="flex w-full min-h-screen flex-col items-center p-24 gradient-radial">
       <div className="grid gap-4">
         <h1 className="grid justify-center font-sans font-bold text-3xl">Playscene</h1>
-        <h3 className="font-sans">Find your next Spotify playlist for your scene.</h3>
+        <h3 className="text-center font-sans">Find your next Spotify playlist for your scene.</h3>
         <a href={`${process.env.NEXT_PUBLIC_API_SERVICE}/login`}
           className="grid mx-4 py-4 place-content-center button border-[2px] border-default-green shadow-md rounded-full bg-default-green text-black font-medium hover:bg-green drop-shadow-md">
           Connect to Spotify</a>          
       </div>
 
       <div className="grid grid-cols-1 gap-4 pt-4">
-        <div className="grid my-2 mx-2">    
+        <div className="grid justify-center my-2 mx-2">    
               <label className="grid px-4 pt-4 justify-center font-sans">Upload a photo:</label>
               <input
                 type="file"
@@ -128,13 +137,13 @@ export default function Home() {
                 onChange={handleFile}
                 ref={inputFile}
                 className="border border-[2px] rounded-md"/>
-              {fileObj ? <p>Uploaded!</p> : <p></p>}                
+              {fileObj ? <p className="grid text-center">Uploaded!</p> : <p></p>}                
         </div>
       </div>
       
       <div className="grid pt-6">
       { isLoading || open ? 
-        <Dialog open={open} onClose={setOpen} className="relative z-10">
+        <Dialog open={open} onClose={refreshComponents} className="relative z-10">
           <DialogBackdrop
             transition
             className="fixed inset-0 bg-light-gray bg-opacity-75 transition-opacity data-[closed]:opacity-0 data-[enter]:duration-300 data-[leave]:duration-200 data-[enter]:ease-out data-[leave]:ease-in"
@@ -155,10 +164,10 @@ export default function Home() {
                 </div>
                 : 
                 <div className= "grid grid-cols-3 justify-center">
-                  <div className="grid justify-items-center py-4"> 
+                  <div className="grid justify-items-center pl-2 py-4"> 
                     <img src={coverImgUrl} width={120} height={120}></img>
                   </div>
-                  <div className="grid col-span-2 px-4 py-4">
+                  <div className="grid col-span-2 pl-8 py-4">
                     <h2 className="font-sans">Playlist</h2>
                     <h1 className="font-sans font-bold text-2xl">{userId}'s Playlist</h1>
                     <div className="grid justify-items-start">
