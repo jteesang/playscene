@@ -1,13 +1,34 @@
 'use client'
 import { createSupabaseClient } from "../utils/client";
-import { useState, useEffect, useCallback, useRef } from "react";
+import React , { useState, useEffect, useCallback, useRef} from "react";
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react';
 import Webcam from "react-webcam";
 
 const supabase = createSupabaseClient();
 
+class UserCamera extends React.Component {
+  render() {
+    const videoConstraints ={
+      facingMode: "user"
+    }
+
+    return <Webcam videoConstraints={videoConstraints} />
+  }
+}
+
+class EnvironmentCamera extends React.Component {
+  render() {
+    const videoConstraints ={
+      facingMode: {exact: 'environment'}
+    }
+
+    return <Webcam videoConstraints={videoConstraints} />
+  }
+}
+
 export default function Home() {
   const[accessToken, setAccessToken] = useState('')
+  const [isUserCamera, setIsUserCamera] = useState(true)
 
   const[fileObj, setFileObj] = useState('') 
   const[fileName, setFileName] = useState('')
@@ -31,6 +52,9 @@ export default function Home() {
       setDevices(mediaDevices.filter(({ kind }) => kind === "videoinput")),
     [setDevices]
   );
+
+
+  
 
   useEffect( () => {
     console.log(`cameraMode: ${cameraMode}`)
@@ -61,14 +85,26 @@ export default function Home() {
     facingMode: cameraMode
   };
 
-  const handleCamera = () => {
-    console.log(cameraMode)
-    if (cameraMode === "user") {
-      setCameraMode({exact: "environment"})
-    }
-    else {
-      setCameraMode("user")
-    }
+  // const handleCamera = () => {
+  //   console.log(cameraMode)
+  //   if (cameraMode === "user") {
+  //     setCameraMode({exact: "environment"})
+  //   }
+  //   else {
+  //     setCameraMode("user")
+  //   }
+  // }
+
+
+  // const handleToggleCamera = useCallback(() => {
+  //   setCameraMode((prevMode) => (prevMode === 'user'? 'environment': 'user'))
+  //   console.log(cameraMode)
+  // })
+
+
+  const handleToggleCamera = () => {
+    setIsUserCamera(!isUserCamera);
+    console.log("107------>", isUserCamera)
   }
 
   const handleSubmit = async () => {
@@ -165,12 +201,13 @@ export default function Home() {
       <div className="grid pt-4">
         <div className="grid grid-cols-7 py-4">
             <div className="col-span-6 items-start">
-              <Webcam audio={false} screenshotFormat="image/jpg" ref={webcamRef} videoConstraints={{ videoConstraints }}/>
+              {isUserCamera ? <UserCamera/> : <EnvironmentCamera />}
+              {/* <Webcam audio={false} screenshotFormat="image/jpg" ref={webcamRef} videoConstraints={{ videoConstraints }}/> */}
             </div>
       
 
           <button className="grid col-start-7" >
-              <img src="/flip.svg" onClick={handleCamera}></img>
+              <img src="/flip.svg" onClick={handleToggleCamera}></img>
           </button>
         </div>
         <div className="grid">
