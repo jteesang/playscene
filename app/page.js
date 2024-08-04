@@ -61,7 +61,8 @@ export default function Home() {
     facingMode: cameraMode
   };
 
-  const handleCamera = () => {
+  const handleCamera = (e) => {
+    console.log(cameraMode)
     if (cameraMode === "environment") {
       setCameraMode("user")
     }
@@ -168,8 +169,8 @@ export default function Home() {
             </div>
       
 
-          <button className="grid col-start-7 button" onClick={handleCamera}>
-              <img src="/flip.svg"></img>
+          <button className="grid col-start-7" >
+              <img src="/flip.svg" onClick={handleCamera}></img>
           </button>
         </div>
         <div className="grid">
