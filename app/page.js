@@ -21,7 +21,7 @@ export default function Home() {
   const[isLoading, setLoading] = useState(false)
 
   const[imgSrc, setImgSrc] = useState(null);
-  const[cameraMode, setCameraMode] = useState("environment")
+  const[cameraMode, setCameraMode] = useState("user")
   const webcamRef = useRef(null)
   const [deviceId, setDeviceId] = useState({});
   const [devices, setDevices] = useState([]);
@@ -61,13 +61,13 @@ export default function Home() {
     facingMode: cameraMode
   };
 
-  const handleCamera = (e) => {
+  const handleCamera = () => {
     console.log(cameraMode)
-    if (cameraMode === "environment") {
-      setCameraMode("user")
+    if (cameraMode === "user") {
+      setCameraMode({exact: "environment"})
     }
     else {
-      setCameraMode("environment")
+      setCameraMode("user")
     }
   }
 
