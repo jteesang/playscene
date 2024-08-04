@@ -21,7 +21,7 @@ export default function Home() {
   const[isLoading, setLoading] = useState(false)
 
   const[imgSrc, setImgSrc] = useState(null);
-  const[cameraMode, setCameraMode] = useState('environment  ')
+  const[cameraMode, setCameraMode] = useState("environment")
   const webcamRef = useRef(null)
   const [deviceId, setDeviceId] = useState({});
   const [devices, setDevices] = useState([]);
@@ -33,7 +33,7 @@ export default function Home() {
   );
 
   useEffect( () => {
-    console.log(`url: ${process.env.NEXT_PUBLIC_API_SERVICE}`)
+    console.log(`cameraMode: ${cameraMode}`)
     console.log('in effect, open: ', open)
     // setCoverImageUrl('https://mosaic.scdn.co/300/ab67616d0000b2730835d1fdd076d957c324ccd6ab67616d0000b2731b5192c9ab7c8af90a9475f6ab67616d0000b2733f3680542f3f921cc31b4364ab67616d0000b273db7b8eb8f4d48fc9445bc937')
     // console.log('in effect, uploaded image: ', base64Output)
@@ -60,6 +60,15 @@ export default function Home() {
   const videoConstraints = {
     facingMode: cameraMode
   };
+
+  const handleCamera = () => {
+    if (cameraMode === "environment") {
+      setCameraMode("user")
+    }
+    else {
+      setCameraMode("environment")
+    }
+  }
 
   const handleSubmit = async () => {
     if (fileObj == '') {
@@ -159,7 +168,7 @@ export default function Home() {
             </div>
       
 
-          <button className="grid col-start-7 button">
+          <button className="grid col-start-7 button" onClick={handleCamera}>
               <img src="/flip.svg"></img>
           </button>
         </div>
