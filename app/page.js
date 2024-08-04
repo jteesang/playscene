@@ -12,7 +12,7 @@ class UserCamera extends React.Component {
       facingMode: "user"
     }
 
-    return <Webcam videoConstraints={videoConstraints} />
+    return <Webcam videoConstraints={videoConstraints}/>
   }
 }
 
@@ -22,7 +22,7 @@ class EnvironmentCamera extends React.Component {
       facingMode: {exact: 'environment'}
     }
 
-    return <Webcam videoConstraints={videoConstraints} />
+    return <Webcam videoConstraints={videoConstraints}/>
   }
 }
 
@@ -54,7 +54,12 @@ export default function Home() {
   );
 
 
-  
+  const environmentConstraints = {
+    facingMode: {exact: 'environment'}
+  } 
+  const userConstraints = {
+    facingMode: "user"
+  }
 
   useEffect( () => {
     console.log(`cameraMode: ${cameraMode}`)
@@ -72,34 +77,16 @@ export default function Home() {
     }
   }, [handleDevices])
 
-  const capture = useCallback( () => {
-    const imageSrc = webcamRef.current.getScreenshot();
-    setImgSrc(imageSrc);
+  const capture = useCallback(() => {
+    if (webcamRef.current) {
+      const imageSrc = webcamRef.current.getScreenshot();
+      console.log(imageSrc); // This will log the base64 encoded image to the console
+    }
   }, [webcamRef]);
 
   const retake = () => {
       setImgSrc(null)
   }
-
-  const videoConstraints = {
-    facingMode: cameraMode
-  };
-
-  // const handleCamera = () => {
-  //   console.log(cameraMode)
-  //   if (cameraMode === "user") {
-  //     setCameraMode({exact: "environment"})
-  //   }
-  //   else {
-  //     setCameraMode("user")
-  //   }
-  // }
-
-
-  // const handleToggleCamera = useCallback(() => {
-  //   setCameraMode((prevMode) => (prevMode === 'user'? 'environment': 'user'))
-  //   console.log(cameraMode)
-  // })
 
 
   const handleToggleCamera = () => {
@@ -201,8 +188,8 @@ export default function Home() {
       <div className="grid pt-4">
         <div className="grid grid-cols-7 py-4">
             <div className="col-span-6 items-start">
-              {isUserCamera ? <UserCamera/> : <EnvironmentCamera />}
-              {/* <Webcam audio={false} screenshotFormat="image/jpg" ref={webcamRef} videoConstraints={{ videoConstraints }}/> */}
+              {/* {isUserCamera ? <UserCamera ref={webcamRef}/> : <EnvironmentCamera ref={webcamRef}/>} */}
+              <Webcam audio={false} screenshotFormat="image/jpg" ref={webcamRef} videoConstraints={ isUserCamera ? userConstraints : environmentConstraints }/>
             </div>
       
 
