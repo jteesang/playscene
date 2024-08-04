@@ -165,7 +165,7 @@ export default function Home() {
       <div className="grid pt-4">
         <div className="grid grid-cols-7 py-4">
             <div className="col-span-6 items-start">
-              <Webcam audio={false} screenshotFormat="image/jpg" ref={webcamRef} videoConstraints={{ deviceId: deviceId }}/>
+              <Webcam audio={false} screenshotFormat="image/jpg" ref={webcamRef} videoConstraints={{ videoConstraints }}/>
             </div>
       
 
