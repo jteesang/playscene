@@ -1,5 +1,5 @@
 'use client'
-import { createSupabaseClient } from "../utils/client"
+import { createSupabaseClient } from "../utils/client";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react';
 import Webcam from "react-webcam";
@@ -21,9 +21,16 @@ export default function Home() {
   const[isLoading, setLoading] = useState(false)
 
   const[imgSrc, setImgSrc] = useState(null);
-  const[cameraMode, setCameraMode] = useState('environment')
+  const[cameraMode, setCameraMode] = useState('environment  ')
   const webcamRef = useRef(null)
+  const [deviceId, setDeviceId] = useState({});
+  const [devices, setDevices] = useState([]);
 
+  const handleDevices = useCallback(
+    mediaDevices =>
+      setDevices(mediaDevices.filter(({ kind }) => kind === "videoinput")),
+    [setDevices]
+  );
 
   useEffect( () => {
     console.log(`url: ${process.env.NEXT_PUBLIC_API_SERVICE}`)
@@ -39,7 +46,7 @@ export default function Home() {
       console.log('access token:', accessToken)
       setAccessToken(accessToken)
     }
-  })
+  }, [handleDevices])
 
   const capture = useCallback( () => {
     const imageSrc = webcamRef.current.getScreenshot();
@@ -145,6 +152,31 @@ export default function Home() {
           Connect to Spotify</a>          
       </div>
 
+      <div className="grid pt-4">
+        <div className="grid grid-cols-7 py-4">
+            <div className="col-span-6 items-start">
+              <Webcam audio={false} screenshotFormat="image/jpg" ref={webcamRef} videoConstraints={{ deviceId: deviceId }}/>
+            </div>
+      
+
+          <button className="grid col-start-7 button">
+              <img src="/flip.svg"></img>
+          </button>
+        </div>
+        <div className="grid">
+            {
+              imgSrc ? (
+                <button className="justify-items-center button border-[2px] border-red rounded-full bg-black hover:bg-red px-8 py-2" onClick={retake}>Retake</button>
+              ): (
+                <button className="justify-items-center button border-[2px] border-default-green rounded-full bg-black hover:bg-green px-8 py-2" onClick={capture}>Capture</button>
+            )}
+
+          </div>
+
+
+      </div>
+
+
       <div className="grid grid-cols-1 gap-4 pt-4">
         {/* <div className="grid justify-center my-2 mx-2">    
               <label className="grid px-4 pt-4 justify-center font-sans">Upload a photo:</label>
@@ -156,23 +188,7 @@ export default function Home() {
                 className="border border-[2px] rounded-md"/>
               {fileObj ? <p className="grid text-center">Uploaded!</p> : <p></p>}                
         </div> */}
-        <div className="grid py-4">
-            { imgSrc ? (
-                  <img src={imgSrc} alt="webcam"></img>
-              ) : (
-                  <Webcam audio={false} screenshotFormat="image/jpg" ref={webcamRef} videoConstraints={videoConstraints}></Webcam>
-            )}
-            <div className="grid grid-cols-2 justify-center">
-              {
-                imgSrc ? (
-                  <div className="grid col-start-2">
-                    <button className="button border-[2px] border-red rounded-full bg-black hover:bg-red px-8 py-2" onClick={retake}>Retake</button>
-                  </div>
-                ): (
-                  <button className="button border-[2px] border-default-green rounded-full bg-black hover:bg-green px-8 py-2" onClick={capture}>Capture</button>
-                )}
-            </div>
-          </div>
+
       </div>
       
       <div className="grid pt-6">
