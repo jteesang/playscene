@@ -95,7 +95,7 @@ export default function Home() {
     setPlaylist('')
 
 
-    const { data, error } = supabase.storage.from('playscene').upload('/uploads/' + fileName, fileObj, {
+    const { data, error } = supabase.storage.from('playscene').update('/uploads/' + fileName, fileObj, {
       cacheControl: '3600',
       upsert: true
     })
