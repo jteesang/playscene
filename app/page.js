@@ -14,25 +14,20 @@ export default function Home() {
   const[open, setOpen] = useState(false)
   const inputFile = useRef(null)
 
+  const[description, setDescription] = useState('')
   const[playlist, setPlaylist] = useState('')
   const[coverImgUrl, setCoverImageUrl] = useState('')
   const[userId, setUserId] = useState('')
   const[isLoading, setLoading] = useState(false)
-  const webcamRef = useRef(null)
 
 
   useEffect( () => {
-    console.log(`url: ${process.env.NEXT_PUBLIC_API_SERVICE}`)
-    console.log('in effect, open: ', open)
-    // setCoverImageUrl('https://mosaic.scdn.co/300/ab67616d0000b2730835d1fdd076d957c324ccd6ab67616d0000b2731b5192c9ab7c8af90a9475f6ab67616d0000b2733f3680542f3f921cc31b4364ab67616d0000b273db7b8eb8f4d48fc9445bc937')
-    // console.log('in effect, uploaded image: ', base64Output)
     let accessToken = new URL(window.location.href).search.split('access_token=')[1]
     if (accessToken == '') {  
       alert('Please authenticate with Spotify!')
 
     } 
     else {
-      console.log('access token:', accessToken)
       setAccessToken(accessToken)
     }
   })
@@ -54,6 +49,11 @@ export default function Home() {
           mode: 'cors',
           method: 'POST',
           body: formData,
+        })
+        .then((response) => response.json())
+        .then(async ({description}) => {
+          setDescription(description);
+          return await fetch(`${process.env.NEXT_PUBLIC_API_SERVICE}/get_playlist`, { method:'GET'});
         })
         .then((response) => response.json())
         .then(({playlist, cover_image, user}) => {
@@ -120,7 +120,7 @@ export default function Home() {
 
   return (
     <main className="flex w-full min-h-screen flex-col items-center p-24 gradient-radial">
-      <div className="grid gap-4">
+      <div className="grid gap-4 text-white">
         <h1 className="grid justify-center font-sans font-bold text-3xl">Playscene</h1>
         <h3 className="text-center font-sans">Find your next Spotify playlist for your scene.</h3>
         <a href={`${process.env.NEXT_PUBLIC_API_SERVICE}/login`}
@@ -130,13 +130,13 @@ export default function Home() {
 
       <div className="grid grid-cols-1 gap-4 pt-4">
         <div className="grid justify-center my-2 mx-2">    
-              <label className="grid px-4 pt-4 justify-center font-sans">Upload a photo:</label>
+              <label className="grid px-4 pt-4 justify-center text-white font-sans">Upload a photo:</label>
               <input
                 type="file"
                 required
                 onChange={handleFile}
                 ref={inputFile}
-                className="border border-[2px] rounded-md"/>
+                className="border border-[2px] text-white rounded-md"/>
               {fileObj ? <p className="grid text-center">Uploaded!</p> : <p></p>}                
         </div>
       </div>
@@ -152,15 +152,21 @@ export default function Home() {
             <div className="flex w-full justify-center text-center sm:items-center sm:p-0">
               <DialogPanel
                 transition
-                className="relative transform overflow-hidden rounded-md text-left shadow-xl transition-all data-[closed]:translate-y-4 data-[closed]:opacity-0 data-[enter]:duration-300 data-[leave]:duration-200 data-[enter]:ease-out data-[leave]:ease-in sm:my-8 sm:w-full sm:max-w-lg data-[closed]:sm:translate-y-0 data-[closed]:sm:scale-95"
+                className="relative transform overflow-hidden rounded-md text-left text-white shadow-xl transition-all data-[closed]:translate-y-4 data-[closed]:opacity-0 data-[enter]:duration-300 data-[leave]:duration-200 data-[enter]:ease-out data-[leave]:ease-in sm:my-8 sm:w-full sm:max-w-lg data-[closed]:sm:translate-y-0 data-[closed]:sm:scale-95"
               >
               <div className="bg-light-black px-4 pb-8 pt-5 sm:p-6 sm:pb-8">
                 { playlist === '' || playlist === null ?
                 <div>
-                  <h2 className="flex justify-center font-sans font-semibold">Generating your playlist...</h2>
-                  <div className="flex justify-center items-center pt-4 pb-4 bg-opacity-75">
-                    <img src={base64Output} width={200} height={200}/>
-                  </div>
+                  {
+                    description === '' || description === null ?
+                    <div>
+                      <h2 className="flex justify-center font-sans text-white font-semibold">Generating your playlist... </h2>
+                      <div className="flex justify-center items-center pt-4 pb-4 bg-opacity-75">
+                        <img src={base64Output} width={200} height={200}/>
+                      </div>
+                    </div>
+                    : <h2 className="flex justify-text-center text-white font-sans font-semibold">Sensing the following... {description}</h2>
+                  }
                 </div>
                 : 
                 <div className= "grid grid-cols-3 justify-center">
@@ -168,8 +174,8 @@ export default function Home() {
                     <img src={coverImgUrl} width={120} height={120}></img>
                   </div>
                   <div className="grid col-span-2 pl-8 py-4">
-                    <h2 className="font-sans">Playlist</h2>
-                    <h1 className="font-sans font-bold text-2xl">{userId}'s Playlist</h1>
+                    <h2 className="font-sans text-white">Playlist</h2>
+                    <h1 className="font-sans text-white font-bold text-2xl">Playscene playlist</h1>
                     <div className="grid justify-items-start">
                       <a href={playlist}
                         className="grid px-4 place-content-center button border-[2px] border-default-green shadow-md rounded-full bg-default-green text-black font-medium hover:bg-green drop-shadow-md">
