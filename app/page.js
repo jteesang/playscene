@@ -52,7 +52,8 @@ export default function Home() {
         })
         .then((response) => response.json())
         .then(async ({description}) => {
-          setDescription(description);
+          const descriptionList = description.split(',').map(item => item.trim());
+          setDescription(descriptionList);
           return await fetch(`${process.env.NEXT_PUBLIC_API_SERVICE}/get_playlist`, { method:'GET'});
         })
         .then((response) => response.json())
@@ -137,7 +138,7 @@ export default function Home() {
                 onChange={handleFile}
                 ref={inputFile}
                 className="border border-[2px] text-white rounded-md"/>
-              {fileObj ? <p className="grid text-center">Uploaded!</p> : <p></p>}                
+              {fileObj ? <p className="grid text-center text-white">Uploaded!</p> : <p></p>}                
         </div>
       </div>
       
@@ -165,7 +166,16 @@ export default function Home() {
                         <img src={base64Output} width={200} height={200}/>
                       </div>
                     </div>
-                    : <h2 className="flex justify-text-center text-white font-sans font-semibold">Sensing the following... {description}</h2>
+                    : <div>
+                    <h2 className="flex justify-text-center text-white font-sans font-semibold">Sensing the following...</h2>
+                      <ul className="list-disc pl-5">
+                        {description.map((item, index) => (
+                          <li key={index} className="text-white">
+                            {item}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                   }
                 </div>
                 : 
